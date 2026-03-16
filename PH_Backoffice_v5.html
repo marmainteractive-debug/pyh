@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P&H Fotografía — Backoffice</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --coral:#E8735A;--dark:#3D3D3D;--bg:#F5F4F2;--white:#fff;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --text:#3D3D3D;--text2:#777;--text3:#aaa;
+  --rowbg:#F9F8F6;--green:#4CAF50;--blue:#3B8BD4;--amber:#BA7517;
+  --shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);font-size:14px;display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:220px;min-width:220px;background:var(--dark);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;transition:transform 0.25s ease}
+.sidebar-brand{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sidebar-logo{font-size:13px;font-weight:600;color:white;letter-spacing:0.3px}
+.sidebar-sub{font-size:10px;color:var(--coral);font-weight:300;letter-spacing:1px;font-family:'DM Mono',monospace}
+.sidebar-user{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--coral);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:white;flex-shrink:0}
+.user-name{font-size:12px;color:white;font-weight:500}
+.user-role{font-size:10px;color:var(--text3);font-weight:300}
+.sidebar-nav{flex:1;padding:8px 0;overflow-y:auto}
+.nav-section{font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;padding:12px 16px 4px;font-family:'DM Mono',monospace}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;transition:background 0.15s;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,0.05)}
+.nav-item.active{background:rgba(232,115,90,0.15);border-left-color:var(--coral)}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+.nav-label{font-size:12px;color:rgba(255,255,255,0.7);font-weight:300}
+.nav-item.active .nav-label{color:white;font-weight:500}
+.nav-badge{margin-left:auto;background:var(--coral);color:white;font-size:10px;padding:1px 7px;border-radius:10px;font-family:'DM Mono',monospace}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40}
+.topbar-title{font-size:16px;font-weight:600;color:var(--dark)}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:7px 16px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:'Poppins',sans-serif;transition:all 0.15s}
+.btn-primary{background:var(--coral);color:white}
+.btn-primary:hover{background:#d4624a}
+.btn-secondary{background:transparent;border:1px solid var(--border2);color:var(--text)}
+.btn-secondary:hover{background:var(--rowbg)}
+.content{padding:24px;flex:1}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+.metric{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.metric-label{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.metric-value{font-size:24px;font-weight:300;color:var(--dark)}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* KANBAN */
+.kanban-wrap{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+.kb-col{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px;min-width:210px;width:210px;flex-shrink:0;transition:border-color 0.15s}
+.kb-col.drag-over{border-color:var(--coral);background:#fff8f6}
+.kb-col-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.kb-col-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;font-family:'DM Mono',monospace}
+.kb-count{font-size:11px;font-family:'DM Mono',monospace;background:var(--rowbg);color:var(--text3);border-radius:10px;padding:1px 7px;border:1px solid var(--border)}
+.kb-card{background:var(--rowbg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:border-color 0.15s,background 0.15s;user-select:none}
+.kb-card:hover{border-color:var(--border2);background:#f0efed}
+.kb-card.selected{border-color:var(--coral);background:#fff8f6}
+.kb-card.dragging{opacity:0.4}
+.kb-card-name{font-size:12px;font-weight:500;margin-bottom:3px}
+.kb-card-emp{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:6px}
+.drop-hint{display:none;border:1.5px dashed var(--coral);border-radius:8px;height:48px;margin-bottom:8px;opacity:0.4}
+.kb-col.drag-over .drop-hint{display:block}
+
+/* BADGES */
+.badge{font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;display:inline-block;font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
+.badge-compra{background:#E6F1FB;color:#185FA5}
+.badge-venta{background:#EAF3DE;color:#3B6D11}
+.badge-canje{background:#FAEEDA;color:#854F0B}
+.badge-consig{background:#EEEDFE;color:#3C3489}
+.badge-rep{background:#FCEBEB;color:#A32D2D}
+.badge-garantia{background:#FBEAF0;color:#993556}
+.badge-devol{background:#F1EFE8;color:#444441}
+.badge-asesoria{background:#E1F5EE;color:#085041}
+.badge-atencion{background:#F1EFE8;color:#5F5E5A}
+
+/* DETAIL PANEL */
+.detail-panel{width:260px;min-width:260px;background:var(--white);border:1px solid var(--border);border-radius:10px;display:none;overflow:hidden;position:sticky;top:80px;max-height:calc(100vh - 100px);overflow-y:auto}
+.detail-panel.open{display:block}
+.detail-header{padding:14px 16px;border-bottom:1px solid var(--border);background:var(--rowbg)}
+.detail-title{font-size:14px;font-weight:600;margin-bottom:3px}
+.detail-sub{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
+.detail-body{padding:14px 16px}
+.detail-row{margin-bottom:10px}
+.detail-label{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px}
+.detail-value{font-size:12px;color:var(--text)}
+.detail-notes{background:var(--rowbg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text2);line-height:1.5;margin-top:4px}
+.detail-section{font-size:10px;color:var(--coral);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.8px;margin:12px 0 6px}
+.btn-mover{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--rowbg);cursor:pointer;font-size:11px;font-family:'Poppins',sans-serif;color:var(--text2);text-align:left;margin-bottom:5px;transition:all 0.15s;display:flex;align-items:center;gap:8px}
+.btn-mover:hover{border-color:var(--coral);color:var(--coral);background:#fff8f6}
+.btn-close-panel{width:calc(100% - 32px);margin:8px 16px 14px;padding:7px;border:1px solid var(--border);border-radius:6px;background:transparent;cursor:pointer;font-size:11px;font-family:'Poppins',sans-serif;color:var(--text3)}
+
+/* TABLES */
+.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.table-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.table-title{font-size:14px;font-weight:600}
+.table-filters{display:flex;gap:8px;align-items:center}
+.filter-input{padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'Poppins',sans-serif;color:var(--text);background:var(--rowbg);width:200px}
+.filter-select{padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'Poppins',sans-serif;color:var(--text);background:var(--rowbg)}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--dark)}
+thead th{padding:10px 16px;font-size:11px;font-weight:600;color:white;text-align:left;font-family:'DM Mono',monospace;letter-spacing:0.3px}
+tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s}
+tbody tr:hover{background:var(--rowbg)}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:10px 16px;font-size:12px;font-weight:300;vertical-align:middle}
+.td-name{font-weight:500}
+.td-code{font-family:'DM Mono',monospace;color:var(--text3);font-size:11px}
+.estado-dot{display:inline-flex;align-items:center;gap:5px;font-size:11px}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-disponible{background:var(--green)}
+.dot-reservado{background:var(--amber)}
+.dot-vendido{background:var(--text3)}
+.dot-reparacion{background:var(--coral)}
+.dot-consignacion{background:var(--blue)}
+
+/* FICHA */
+.ficha-layout{display:grid;grid-template-columns:1fr 340px;gap:20px}
+.ficha-main{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.ficha-photos{background:var(--dark);height:260px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.ficha-photo-placeholder{font-size:48px;opacity:0.3}
+.ficha-photo-label{font-size:12px;color:rgba(255,255,255,0.3);font-weight:300}
+.ficha-body{padding:20px}
+.ficha-title{font-size:20px;font-weight:600;margin-bottom:4px}
+.ficha-code{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:16px}
+.ficha-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.ficha-field{background:var(--rowbg);border:1px solid var(--border);border-radius:6px;padding:10px 12px}
+.ficha-field-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;font-family:'DM Mono',monospace;margin-bottom:3px}
+.ficha-field-value{font-size:13px;font-weight:500}
+.ficha-sidebar{display:flex;flex-direction:column;gap:16px}
+.ficha-card{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.ficha-card-header{padding:12px 16px;border-bottom:1px solid var(--border);background:var(--rowbg);font-size:12px;font-weight:600}
+.ficha-card-body{padding:14px 16px}
+.op-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.op-item:last-child{border-bottom:none}
+.op-item-left{display:flex;flex-direction:column;gap:2px}
+.op-item-type{font-weight:500}
+.op-item-date{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
+.historial-item{padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.historial-item:last-child{border-bottom:none}
+.historial-state{font-weight:500}
+.historial-meta{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px}
+
+/* FORM */
+.form-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:24px;max-width:680px}
+.form-title{font-size:16px;font-weight:600;margin-bottom:4px}
+.form-sub{font-size:13px;color:var(--text2);margin-bottom:24px;font-weight:300}
+.form-group{margin-bottom:16px}
+.form-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;font-family:'DM Mono',monospace;margin-bottom:6px;display:block}
+.form-input{width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;color:var(--text);background:var(--white);transition:border-color 0.15s}
+.form-input:focus{outline:none;border-color:var(--coral)}
+.form-select{width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;color:var(--text);background:var(--white)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:6px;font-size:13px;font-family:'Poppins',sans-serif;color:var(--text);resize:vertical;min-height:80px}
+.form-actions{display:flex;gap:8px;margin-top:24px}
+.tipo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+.tipo-card{border:1px solid var(--border2);border-radius:8px;padding:14px;cursor:pointer;transition:all 0.15s;text-align:center}
+.tipo-card:hover{border-color:var(--coral)}
+.tipo-card.selected{border-color:var(--coral);background:#fff8f6}
+.tipo-card-icon{font-size:24px;margin-bottom:6px}
+.tipo-card-name{font-size:12px;font-weight:600}
+.tipo-card-desc{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* REPORTES */
+.reportes-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.reporte-card{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.reporte-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.reporte-title{font-size:13px;font-weight:600}
+.reporte-body{padding:16px}
+.reporte-bar-wrap{margin-bottom:10px}
+.reporte-bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px}
+.reporte-bar-bg{background:var(--rowbg);border-radius:4px;height:8px;overflow:hidden}
+.reporte-bar-fill{height:100%;border-radius:4px;background:var(--coral);transition:width 0.5s}
+.reporte-stat{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.reporte-stat:last-child{border-bottom:none}
+.reporte-stat-label{color:var(--text2);font-weight:300}
+.reporte-stat-value{font-weight:600}
+.reporte-big{font-size:32px;font-weight:300;color:var(--dark);margin:8px 0 4px}
+.reporte-big-label{font-size:12px;color:var(--text3)}
+
+/* ABM */
+.abm-wrap{display:flex;gap:20px}
+.abm-list{flex:1}
+.abm-detail{width:320px;flex-shrink:0}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+
+/* HAMBURGER */
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;border:none;background:transparent;margin-right:4px}
+.hamburger span{display:block;width:22px;height:2px;background:var(--dark);border-radius:2px;transition:all 0.2s}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:45}
+.sidebar-overlay.open{display:block}
+.mobile-card{display:none;background:var(--white);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.mobile-card-header{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.mobile-card-title{font-size:13px;font-weight:500}
+.mobile-card-body{padding:12px 14px}
+.mobile-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.mobile-row:last-child{border-bottom:none}
+.mobile-row-label{color:var(--text3);font-weight:300;flex-shrink:0;margin-right:8px}
+.mobile-row-value{font-weight:400;text-align:right}
+.mobile-actions{padding:10px 14px;display:flex;gap:8px;border-top:1px solid var(--border);background:var(--rowbg)}
+@media(max-width:768px){
+  body{display:block}
+  .sidebar{transform:translateX(-100%);transition:transform 0.25s ease;z-index:50;width:260px}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .topbar{padding:0 14px;gap:8px}
+  .topbar-title{font-size:14px}
+  .hamburger{display:flex}
+  .btn{padding:6px 12px;font-size:11px}
+  .content{padding:14px}
+  .metrics{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px}
+  .metrics .metric:last-child{grid-column:1/-1}
+  .metric-value{font-size:20px}
+  .kanban-wrap{padding-bottom:12px}
+  .kb-col{min-width:175px;width:175px}
+  .detail-panel{position:fixed;bottom:0;left:0;right:0;width:100%;border-radius:16px 16px 0 0;max-height:75vh;z-index:60;box-shadow:0 -4px 24px rgba(0,0,0,0.15)}
+  .desktop-table{display:none !important}
+  .mobile-card{display:block}
+  .table-header{flex-direction:column;align-items:flex-start;gap:10px}
+  .table-filters{flex-wrap:wrap;width:100%}
+  .filter-input{width:100%}
+  .ficha-layout{grid-template-columns:1fr}
+  .ficha-fields{grid-template-columns:1fr 1fr}
+  .form-wrap{padding:16px;max-width:100%}
+  .form-grid{grid-template-columns:1fr}
+  .tipo-grid{grid-template-columns:repeat(2,1fr)}
+  .reportes-grid{grid-template-columns:1fr}
+  .topbar-actions .btn-secondary{display:none}
+  .nuevo-equipo-grid{grid-template-columns:1fr !important}
+}
+@media(max-width:400px){
+  .kb-col{min-width:155px;width:155px}
+  .tipo-grid{grid-template-columns:1fr 1fr}
+}
+
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">P&H Fotografía</div>
+    <div class="sidebar-sub">BACKOFFICE · v1.0</div>
+  </div>
+  <div class="sidebar-user">
+    <div class="avatar">PR</div>
+    <div>
+      <div class="user-name">Patricio Rey</div>
+      <div class="user-role">Dueño · Acceso total</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Operaciones</div>
+    <div class="nav-item" onclick="goTo('dashboard',this)">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="goTo('operaciones',this)">
+      <span class="nav-icon">➕</span>
+      <span class="nav-label">Nueva operacion</span>
+    </div>
+    <div class="nav-section">Inventario</div>
+    <div class="nav-item" onclick="goTo('inventario',this)">
+      <span class="nav-icon">📷</span>
+      <span class="nav-label">Ver inventario</span>
+    </div>
+    <div class="nav-item" onclick="goTo('nuevo-equipo',this)">
+      <span class="nav-icon">➕</span>
+      <span class="nav-label">Cargar equipo</span>
+    </div>
+    <div class="nav-section">Contactos</div>
+    <div class="nav-item" onclick="goTo('contactos',this)">
+      <span class="nav-icon">👥</span>
+      <span class="nav-label">Ver contactos</span>
+    </div>
+    <div class="nav-item" onclick="goTo('nuevo-contacto',this)">
+      <span class="nav-icon">➕</span>
+      <span class="nav-label">Nuevo contacto</span>
+    </div>
+    <div class="nav-section">Proveedores</div>
+    <div class="nav-item" onclick="goTo('proveedores',this)">
+      <span class="nav-icon">🔧</span>
+      <span class="nav-label">Ver proveedores</span>
+    </div>
+    <div class="nav-item" onclick="goTo('nuevo-proveedor',this)">
+      <span class="nav-icon">➕</span>
+      <span class="nav-label">Nuevo proveedor</span>
+    </div>
+    <div class="nav-section">Configuracion</div>
+    <div class="nav-item" onclick="goTo('usuarios',this)">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Ver usuarios</span>
+    </div>
+    <div class="nav-item" onclick="goTo('nuevo-usuario',this)">
+      <span class="nav-icon">➕</span>
+      <span class="nav-label">Nuevo usuario</span>
+    </div>
+    <div class="nav-section">Analisis</div>
+    <div class="nav-item" onclick="goTo('reportes',this)">
+      <span class="nav-icon">📈</span>
+      <span class="nav-label">Reportes</span>
+    </div>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="topbar"><button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Dashboard — operaciones en curso</div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary" onclick="goTo('operaciones',null)">+ Nueva operacion</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">En curso</div><div class="metric-value">16</div><div class="metric-sub">operaciones activas</div></div>
+        <div class="metric"><div class="metric-label">Equipos disponibles</div><div class="metric-value">47</div><div class="metric-sub">en inventario</div></div>
+        <div class="metric"><div class="metric-label">Consignaciones</div><div class="metric-value">5</div><div class="metric-sub">pendientes de liquidar</div></div>
+        <div class="metric"><div class="metric-label">Reparaciones</div><div class="metric-value">3</div><div class="metric-sub">en proceso</div></div>
+        <div class="metric"><div class="metric-label">Cerradas hoy</div><div class="metric-value">4</div><div class="metric-sub">operaciones</div></div>
+      </div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <div style="flex:1;overflow-x:auto">
+          <div class="kanban-wrap" id="kanban-board">
+
+            <div class="kb-col" data-col="negociacion" ondragover="onOver(event)" ondragleave="onLeave(event)" ondrop="onDrop(event)">
+              <div class="kb-col-header"><span class="kb-col-title">Negociacion</span><span class="kb-count" id="cnt-negociacion">5</span></div>
+              <div class="drop-hint"></div>
+              <div class="kb-card" draggable="true" data-tipo="compra" data-emp="Rodrigo" data-contacto="Juan Perez · 11-4523-8891" data-precio="$185.000" data-com="—" data-fecha="14/03/2026" data-notas="Canon 5D Mark IV con lente 50mm incluido. Cliente evalua precio." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Canon 5D Mark IV</div><div class="kb-card-emp">Rodrigo · Juan Perez</div><span class="badge badge-compra">Compra</span></div>
+              <div class="kb-card" draggable="true" data-tipo="canje" data-emp="Lucas" data-contacto="Maria Gonzalez · 11-5534-2210" data-precio="$320.000 c/diferencia" data-com="—" data-fecha="13/03/2026" data-notas="Trae Nikon D750 como parte de pago. Diferencia a acordar." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Sony A7 III</div><div class="kb-card-emp">Lucas · Maria Gonzalez</div><span class="badge badge-canje">Canje</span></div>
+              <div class="kb-card" draggable="true" data-tipo="venta" data-emp="Patricio" data-contacto="Carlos Mendez · 11-6672-3345" data-precio="$280.000" data-com="—" data-fecha="15/03/2026" data-notas="Consulta por financiacion en cuotas." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Fujifilm X-T4</div><div class="kb-card-emp">Patricio · Carlos Mendez</div><span class="badge badge-venta">Venta</span></div>
+              <div class="kb-card" draggable="true" data-tipo="atencion" data-emp="Ana" data-contacto="Roberto Diaz · 11-4421-7789" data-precio="—" data-com="—" data-fecha="15/03/2026" data-notas="Busca lente gran angular. Presupuesto hasta $150.000." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Consulta lentes</div><div class="kb-card-emp">Ana · Roberto Diaz</div><span class="badge badge-atencion">Atencion</span></div>
+              <div class="kb-card" draggable="true" data-tipo="consig" data-emp="Ana" data-contacto="Luis Ramos · 11-7723-4490" data-precio="$95.000" data-com="20%" data-fecha="12/03/2026" data-notas="Sigma 35mm f/1.4 en excelente estado. Publicado en vitrina." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Sigma 35mm f/1.4</div><div class="kb-card-emp">Ana · Luis Ramos</div><span class="badge badge-consig">Consignacion</span></div>
+            </div>
+
+            <div class="kb-col" data-col="proceso" ondragover="onOver(event)" ondragleave="onLeave(event)" ondrop="onDrop(event)">
+              <div class="kb-col-header"><span class="kb-col-title">En proceso</span><span class="kb-count" id="cnt-proceso">5</span></div>
+              <div class="drop-hint"></div>
+              <div class="kb-card" draggable="true" data-tipo="venta" data-emp="Lucas" data-contacto="Pedro Soria · 11-3312-5566" data-precio="$310.000" data-com="—" data-fecha="10/03/2026" data-notas="Sena recibida. Cliente confirmo retiro el viernes." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Nikon Z6 II</div><div class="kb-card-emp">Lucas · Pedro Soria</div><span class="badge badge-venta">Venta</span></div>
+              <div class="kb-card" draggable="true" data-tipo="compra" data-emp="Rodrigo" data-contacto="Andres Vila · 11-5544-8821" data-precio="$140.000" data-com="—" data-fecha="11/03/2026" data-notas="Olympus OM-D E-M5 III. Revision tecnica pendiente." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Olympus OM-D E-M5</div><div class="kb-card-emp">Rodrigo · Andres Vila</div><span class="badge badge-compra">Compra</span></div>
+              <div class="kb-card" draggable="true" data-tipo="asesoria" data-emp="Patricio" data-contacto="Sandra Lopez · 11-6634-1122" data-precio="$8.000" data-com="—" data-fecha="15/03/2026" data-notas="Asesoramiento sobre que camara comprar para viaje. Cobra $8.000." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Asesoramiento camaras</div><div class="kb-card-emp">Patricio · Sandra Lopez</div><span class="badge badge-asesoria">Asesoramiento</span></div>
+              <div class="kb-card" draggable="true" data-tipo="garantia" data-emp="Ana" data-contacto="Fernando Ruiz · 11-4412-6677" data-precio="Sin cargo" data-com="—" data-fecha="14/03/2026" data-notas="Canon EOS R50 vendida el 14/01. Falla el autofoco. En garantia de 60 dias." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Canon EOS R50</div><div class="kb-card-emp">Ana · Fernando Ruiz</div><span class="badge badge-garantia">Garantia</span></div>
+              <div class="kb-card" draggable="true" data-tipo="consig" data-emp="Lucas" data-contacto="Cecilia Mora · 11-5512-8899" data-precio="$175.000" data-com="20%" data-fecha="08/03/2026" data-notas="Pentax K-3 III. 3 interesados esta semana." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Pentax K-3 III</div><div class="kb-card-emp">Lucas · Cecilia Mora</div><span class="badge badge-consig">Consignacion</span></div>
+            </div>
+
+            <div class="kb-col" data-col="reparacion" ondragover="onOver(event)" ondragleave="onLeave(event)" ondrop="onDrop(event)">
+              <div class="kb-col-header"><span class="kb-col-title">En reparacion</span><span class="kb-count" id="cnt-reparacion">3</span></div>
+              <div class="drop-hint"></div>
+              <div class="kb-card" draggable="true" data-tipo="rep" data-emp="Rodrigo" data-contacto="TecnoFoto · 11-4400-9900" data-precio="$45.000" data-com="—" data-fecha="05/03/2026" data-notas="Canon EOS 90D. Obturador. Ciclo 2. Entrega estimada 18/03." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Canon EOS 90D</div><div class="kb-card-emp">Rodrigo · TecnoFoto</div><span class="badge badge-rep">Reparacion</span></div>
+              <div class="kb-card" draggable="true" data-tipo="rep" data-emp="Ana" data-contacto="ElectroImagen · 11-5500-1122" data-precio="$28.000" data-com="—" data-fecha="07/03/2026" data-notas="Sony RX100 VII. Sensor de enfoque. Entrega estimada 20/03." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Sony RX100 VII</div><div class="kb-card-emp">Ana · ElectroImagen</div><span class="badge badge-rep">Reparacion</span></div>
+              <div class="kb-card" draggable="true" data-tipo="rep" data-emp="Patricio" data-contacto="OpticaBsAs · 11-6611-3344" data-precio="$62.000" data-com="—" data-fecha="06/03/2026" data-notas="Canon 70-200mm. Elementos opticos internos. Entrega 22/03." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Canon 70-200mm</div><div class="kb-card-emp">Patricio · OpticaBsAs</div><span class="badge badge-rep">Reparacion</span></div>
+            </div>
+
+            <div class="kb-col" data-col="entregar" ondragover="onOver(event)" ondragleave="onLeave(event)" ondrop="onDrop(event)">
+              <div class="kb-col-header"><span class="kb-col-title">Para entregar</span><span class="kb-count" id="cnt-entregar">3</span></div>
+              <div class="drop-hint"></div>
+              <div class="kb-card" draggable="true" data-tipo="venta" data-emp="Lucas" data-contacto="Martin Castro · 11-3321-5544" data-precio="$390.000" data-com="—" data-fecha="01/03/2026" data-notas="Fuji X100V. Pago recibido. Avisar al cliente para coordinar retiro." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Fuji X100V</div><div class="kb-card-emp">Lucas · Martin Castro</div><span class="badge badge-venta">Venta</span></div>
+              <div class="kb-card" draggable="true" data-tipo="consig" data-emp="Ana" data-contacto="Jorge Blanco · 11-4433-6677" data-precio="$175.000" data-com="20% = $35.000" data-fecha="28/02/2026" data-notas="Liquidar $140.000 a Jorge al momento de entregar." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Leica Q2</div><div class="kb-card-emp">Ana · Jorge Blanco</div><span class="badge badge-consig">Consignacion</span></div>
+              <div class="kb-card" draggable="true" data-tipo="devol" data-emp="Rodrigo" data-contacto="Tomas Vera · 11-6600-2233" data-precio="$85.000 reintegro" data-com="—" data-fecha="02/03/2026" data-notas="Devolucion aprobada. Reintegro de $85.000 pendiente de pago." ondragstart="onDrag(event)" ondragend="onEnd(event)" onclick="openDetail(this)"><div class="kb-card-name">Godox AD600</div><div class="kb-card-emp">Rodrigo · Tomas Vera</div><span class="badge badge-devol">Devolucion</span></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- DETAIL PANEL -->
+        <div class="detail-panel" id="detail-panel">
+          <div class="detail-header">
+            <div class="detail-title" id="d-title"></div>
+            <div class="detail-sub" id="d-sub"></div>
+          </div>
+          <div class="detail-body">
+            <div class="detail-row"><div class="detail-label">Empleado</div><div class="detail-value" id="d-emp"></div></div>
+            <div class="detail-row"><div class="detail-label">Contacto</div><div class="detail-value" id="d-contacto"></div></div>
+            <div class="detail-row"><div class="detail-label">Precio / Monto</div><div class="detail-value" id="d-precio"></div></div>
+            <div class="detail-row"><div class="detail-label">Comision</div><div class="detail-value" id="d-com"></div></div>
+            <div class="detail-row"><div class="detail-label">Fecha ingreso</div><div class="detail-value" id="d-fecha"></div></div>
+            <div class="detail-row"><div class="detail-label">Notas</div><div class="detail-notes" id="d-notas"></div></div>
+            <div class="detail-section">Mover a</div>
+            <button class="btn-mover" onclick="moverCard('negociacion')">→ Negociacion</button>
+            <button class="btn-mover" onclick="moverCard('proceso')">→ En proceso</button>
+            <button class="btn-mover" onclick="moverCard('reparacion')">→ En reparacion</button>
+            <button class="btn-mover" onclick="moverCard('entregar')">→ Para entregar</button>
+            <button class="btn-close-panel" onclick="closeDetail()">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVENTARIO -->
+  <div class="page" id="page-inventario">
+    <div class="topbar"><button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Inventario de equipos</div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="goTo('nuevo-equipo',null)">+ Cargar equipo</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="table-wrap desktop-table">
+        <div class="table-header">
+          <div class="table-title">47 equipos disponibles</div>
+          <div class="table-filters">
+            <input class="filter-input" placeholder="Buscar por nombre, marca, codigo...">
+            <select class="filter-select"><option>Todos los tipos</option><option>Camara</option><option>Lente</option><option>Flash</option><option>Tripode</option><option>Accesorio</option></select>
+            <select class="filter-select"><option>Todos los estados</option><option>Disponible</option><option>Reservado</option><option>En reparacion</option><option>En consignacion</option></select>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Codigo</th><th>Equipo</th><th>Tipo</th><th>Condicion</th><th>Estado operativo</th><th>Precio venta</th><th>Precio USD</th><th style="text-align:center">Acciones</th><th>Acciones</th></tr></thead>
+          <tbody>
+            <tr onclick="goTo('ficha',null)"><td class="td-code">PH-0142</td><td class="td-name">Nikon D750</td><td>Camara</td><td><span class="badge badge-venta">Muy bueno</span></td><td><span class="estado-dot"><span class="dot dot-disponible"></span>Disponible</span></td><td>$185.000</td><td>USD 185</td><td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center"><button onclick="goTo('nuevo-equipo',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;color:#777;font-family:Poppins,sans-serif">✏️ Editar</button><button onclick="if(confirm('Dar de baja este equipo?'))this.closest('tr').style.opacity='0.4'" style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;color:#A32D2D;font-family:Poppins,sans-serif">🗑 Baja</button></div></td></tr>
+            <tr><td class="td-code">PH-0143</td><td class="td-name">Canon 5D Mark IV</td><td>Camara</td><td><span class="badge badge-asesoria">Excelente</span></td><td><span class="estado-dot"><span class="dot dot-reservado"></span>Reservado</span></td><td>$420.000</td><td>USD 420</td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-equipo',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-code">PH-0144</td><td class="td-name">Sony A7 III</td><td>Camara</td><td><span class="badge badge-venta">Muy bueno</span></td><td><span class="estado-dot"><span class="dot dot-disponible"></span>Disponible</span></td><td>$380.000</td><td>USD 380</td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-equipo',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-code">PH-0145</td><td class="td-name">Fujifilm X-T4</td><td>Camara</td><td><span class="badge badge-venta">Muy bueno</span></td><td><span class="estado-dot"><span class="dot dot-disponible"></span>Disponible</span></td><td>$310.000</td><td>USD 310</td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-equipo',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-code">PH-0146</td><td class="td-name">Sigma 35mm f/1.4</td><td>Lente</td><td><span class="badge badge-asesoria">Excelente</span></td><td><span class="estado-dot"><span class="dot dot-consignacion"></span>Consignacion</span></td><td>$95.000</td><td>USD 95</td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-equipo',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-code">PH-0147</td><td class="td-name">Canon EOS 90D</td><td>Camara</td><td><span class="badge badge-canje">Bueno</span></td><td><span class="estado-dot"><span class="dot dot-reparacion"></span>En reparacion</span></td><td>—</td><td>—</td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-equipo',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-code">PH-0148</td><td class="td-name">Godox AD200 Pro</td><td>Flash</td><td><span class="badge badge-venta">Muy bueno</span></td><td><span class="estado-dot"><span class="dot dot-disponible"></span>Disponible</span></td><td>$85.000</td><td>USD 85</td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-equipo',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-code">PH-0149</td><td class="td-name">Manfrotto 055XPRO3</td><td>Tripode</td><td><span class="badge badge-asesoria">Excelente</span></td><td><span class="estado-dot"><span class="dot dot-disponible"></span>Disponible</span></td><td>$45.000</td><td>USD 45</td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-equipo',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-code">PH-0150</td><td class="td-name">Nikon Z6 II</td><td>Camara</td><td><span class="badge badge-venta">Muy bueno</span></td><td><span class="estado-dot"><span class="dot dot-reservado"></span>Reservado</span></td><td>$480.000</td><td>USD 480</td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-equipo',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-code">PH-0151</td><td class="td-name">Canon 70-200mm f/2.8</td><td>Lente</td><td><span class="badge badge-canje">Bueno</span></td><td><span class="estado-dot"><span class="dot dot-reparacion"></span>En reparacion</span></td><td>—</td><td>—</td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-equipo',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+          </tbody>
+        </table>
+      
+      <!-- Mobile cards inventario -->
+      <div class="mobile-card">
+        <div class="mobile-card-header"><span class="mobile-card-title">Nikon D750</span><span class="badge badge-venta">Disponible</span></div>
+        <div class="mobile-card-body">
+          <div class="mobile-row"><span class="mobile-row-label">Codigo</span><span class="mobile-row-value td-code">PH-0142</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Tipo</span><span class="mobile-row-value">Camara</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Condicion</span><span class="mobile-row-value">Muy bueno</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Precio</span><span class="mobile-row-value">$185.000 / USD 185</span></div>
+        </div>
+        <div class="mobile-actions"><button onclick="goTo('ficha',null)" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">Ver ficha</button><button onclick="goTo('nuevo-equipo',null)" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">✏️ Editar</button><button style="flex:1;padding:8px;border:1px solid #f5c6c6;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">🗑 Baja</button></div>
+      </div>
+      <div class="mobile-card">
+        <div class="mobile-card-header"><span class="mobile-card-title">Canon 5D Mark IV</span><span class="badge badge-canje">Reservado</span></div>
+        <div class="mobile-card-body">
+          <div class="mobile-row"><span class="mobile-row-label">Codigo</span><span class="mobile-row-value td-code">PH-0143</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Tipo</span><span class="mobile-row-value">Camara</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Condicion</span><span class="mobile-row-value">Excelente</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Precio</span><span class="mobile-row-value">$420.000 / USD 420</span></div>
+        </div>
+        <div class="mobile-actions"><button onclick="goTo('ficha',null)" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">Ver ficha</button><button onclick="goTo('nuevo-equipo',null)" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">✏️ Editar</button><button style="flex:1;padding:8px;border:1px solid #f5c6c6;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">🗑 Baja</button></div>
+      </div>
+      <div class="mobile-card">
+        <div class="mobile-card-header"><span class="mobile-card-title">Sony A7 III</span><span class="badge badge-venta">Disponible</span></div>
+        <div class="mobile-card-body">
+          <div class="mobile-row"><span class="mobile-row-label">Codigo</span><span class="mobile-row-value td-code">PH-0144</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Condicion</span><span class="mobile-row-value">Muy bueno</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Precio</span><span class="mobile-row-value">$380.000 / USD 380</span></div>
+        </div>
+        <div class="mobile-actions"><button onclick="goTo('ficha',null)" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">Ver ficha</button><button onclick="goTo('nuevo-equipo',null)" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">✏️ Editar</button><button style="flex:1;padding:8px;border:1px solid #f5c6c6;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">🗑 Baja</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FICHA DE EQUIPO -->
+  <div class="page" id="page-ficha">
+    <div class="topbar"><button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Ficha de equipo</div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary" onclick="goTo('inventario',null)">← Volver</button>
+        <button class="btn btn-primary">Editar equipo</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="ficha-layout">
+        <div>
+          <div class="ficha-main">
+            <div class="ficha-photos">
+              <div class="ficha-photo-placeholder">📷</div>
+              <div class="ficha-photo-label">3 fotos · Click para ver en pantalla completa</div>
+            </div>
+            <div class="ficha-body">
+              <div class="ficha-title">Nikon D750</div>
+              <div class="ficha-code">Codigo interno: PH-0142 · Ingreso: 10/02/2026</div>
+              <div class="ficha-fields">
+                <div class="ficha-field"><div class="ficha-field-label">Marca</div><div class="ficha-field-value">Nikon</div></div>
+                <div class="ficha-field"><div class="ficha-field-label">Modelo</div><div class="ficha-field-value">D750</div></div>
+                <div class="ficha-field"><div class="ficha-field-label">Tipo</div><div class="ficha-field-value">Camara DSLR</div></div>
+                <div class="ficha-field"><div class="ficha-field-label">Condicion</div><div class="ficha-field-value">Muy bueno</div></div>
+                <div class="ficha-field"><div class="ficha-field-label">Estado operativo</div><div class="ficha-field-value"><span class="estado-dot"><span class="dot dot-disponible"></span>Disponible</span></div></div>
+                <div class="ficha-field"><div class="ficha-field-label">Disparos</div><div class="ficha-field-value">42.500</div></div>
+                <div class="ficha-field"><div class="ficha-field-label">Precio compra</div><div class="ficha-field-value">$120.000 / USD 120</div></div>
+                <div class="ficha-field"><div class="ficha-field-label">Precio venta</div><div class="ficha-field-value">$185.000 / USD 185</div></div>
+                <div class="ficha-field"><div class="ficha-field-label">Numero de serie</div><div class="ficha-field-value">4521089</div></div>
+                <div class="ficha-field"><div class="ficha-field-label">Origen</div><div class="ficha-field-value">Compra directa</div></div>
+              </div>
+              <div style="margin-bottom:8px;font-size:12px;font-weight:600;color:var(--text2)">Descripcion</div>
+              <p style="font-size:13px;font-weight:300;color:var(--text);line-height:1.7;">Nikon D750 en excelente estado de funcionamiento. Sensor full frame de 24.3 MP, doble ranura SD, Wi-Fi integrado. Incluye tapa de cuerpo y correa original. Sin grip. Ideal para fotografia de bodas, eventos y paisaje.</p>
+            </div>
+          </div>
+        </div>
+        <div class="ficha-sidebar">
+          <div class="ficha-card">
+            <div class="ficha-card-header">Operaciones asociadas</div>
+            <div class="ficha-card-body">
+              <div class="op-item"><div class="op-item-left"><div class="op-item-type">Compra</div><div class="op-item-date">10/02/2026 · Rodrigo</div></div><span class="badge badge-venta">Cerrada</span></div>
+              <div class="op-item"><div class="op-item-left"><div class="op-item-type">Venta en negociacion</div><div class="op-item-date">14/03/2026 · Rodrigo</div></div><span class="badge badge-compra">Activa</span></div>
+            </div>
+          </div>
+          <div class="ficha-card">
+            <div class="ficha-card-header">Historial de estados</div>
+            <div class="ficha-card-body">
+              <div class="historial-item"><div class="historial-state">Disponible</div><div class="historial-meta">10/02/2026 · Rodrigo · Compra cerrada</div></div>
+              <div class="historial-item"><div class="historial-state">Reservado</div><div class="historial-meta">14/03/2026 · Rodrigo · Venta iniciada</div></div>
+              <div class="historial-item"><div class="historial-state">Disponible</div><div class="historial-meta">15/03/2026 · Rodrigo · Venta cancelada</div></div>
+              <div class="historial-item"><div class="historial-state">Reservado</div><div class="historial-meta">15/03/2026 · Rodrigo · Nueva venta iniciada</div></div>
+            </div>
+          </div>
+          <div class="ficha-card">
+            <div class="ficha-card-header">Accesorios incluidos</div>
+            <div class="ficha-card-body" style="font-size:13px;font-weight:300;color:var(--text2)">Tapa de cuerpo · Correa original Nikon</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NUEVA OPERACION -->
+  <div class="page" id="page-operaciones">
+    <div class="topbar"><button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Nueva operacion</div>
+    </div>
+    <div class="content">
+      <div class="form-wrap">
+        <div class="form-title">Selecciona el tipo de operacion</div>
+        <div class="form-sub">Cada tipo abre su propio circuito de estados. Podes cambiar el estado desde el dashboard una vez creada.</div>
+        <div class="tipo-grid">
+          <div class="tipo-card selected" onclick="selTipo(this)"><div class="tipo-card-icon">🛒</div><div class="tipo-card-name">Compra</div><div class="tipo-card-desc">El local compra a un particular</div></div>
+          <div class="tipo-card" onclick="selTipo(this)"><div class="tipo-card-icon">💰</div><div class="tipo-card-name">Venta</div><div class="tipo-card-desc">El local vende a un cliente</div></div>
+          <div class="tipo-card" onclick="selTipo(this)"><div class="tipo-card-icon">🔄</div><div class="tipo-card-name">Canje</div><div class="tipo-card-desc">Intercambio con o sin diferencia</div></div>
+          <div class="tipo-card" onclick="selTipo(this)"><div class="tipo-card-icon">🤝</div><div class="tipo-card-name">Consignacion</div><div class="tipo-card-desc">Venta por cuenta de un tercero</div></div>
+          <div class="tipo-card" onclick="selTipo(this)"><div class="tipo-card-icon">🔧</div><div class="tipo-card-name">Reparacion</div><div class="tipo-card-desc">Servicio tecnico</div></div>
+          <div class="tipo-card" onclick="selTipo(this)"><div class="tipo-card-icon">🎓</div><div class="tipo-card-name">Asesoramiento</div><div class="tipo-card-desc">Consulta tecnica</div></div>
+          <div class="tipo-card" onclick="selTipo(this)"><div class="tipo-card-icon">👤</div><div class="tipo-card-name">Atencion</div><div class="tipo-card-desc">Lead o prospecto</div></div>
+          <div class="tipo-card" onclick="selTipo(this)"><div class="tipo-card-icon">🛡️</div><div class="tipo-card-name">Garantia</div><div class="tipo-card-desc">Reclamo en garantia</div></div>
+          <div class="tipo-card" onclick="selTipo(this)"><div class="tipo-card-icon">↩️</div><div class="tipo-card-name">Devolucion</div><div class="tipo-card-desc">Equipo que vuelve</div></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contacto</label>
+          <select class="form-select"><option>Juan Perez · 11-4523-8891</option><option>Maria Gonzalez · 11-5534-2210</option><option>Carlos Mendez · 11-6672-3345</option><option>+ Nuevo contacto</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Equipo relacionado</label>
+          <select class="form-select"><option>PH-0142 · Nikon D750</option><option>PH-0143 · Canon 5D Mark IV</option><option>PH-0144 · Sony A7 III</option><option>+ Cargar equipo nuevo</option></select>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Precio en pesos</label>
+            <input class="form-input" placeholder="$0.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Precio en dolares</label>
+            <input class="form-input" placeholder="USD 0.00">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Empleado asignado</label>
+          <select class="form-select"><option>Patricio Rey (dueno)</option><option>Rodrigo</option><option>Lucas</option><option>Ana</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notas internas</label>
+          <textarea class="form-textarea" placeholder="Detalles adicionales sobre esta operacion..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary">Crear operacion</button>
+          <button class="btn btn-secondary">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACTOS -->
+  <div class="page" id="page-contactos">
+    <div class="topbar"><button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Contactos</div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary">+ Nuevo contacto</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="table-wrap desktop-table">
+        <div class="table-header">
+          <div class="table-title">128 contactos</div>
+          <div class="table-filters">
+            <input class="filter-input" placeholder="Buscar por nombre, telefono, DNI...">
+            <select class="filter-select"><option>Todos</option><option>Particular</option><option>Empresa</option></select>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Nombre</th><th>Tipo</th><th>Telefono</th><th>Email</th><th>DNI/CUIT</th><th>Operaciones</th><th>Acciones</th></tr></thead>
+          <tbody>
+            <tr><td class="td-name">Juan Perez</td><td>Particular</td><td>11-4523-8891</td><td>jperez@mail.com</td><td>28.451.234</td><td><span class="badge badge-venta">3 ops</span></td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-contacto',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-name">Maria Gonzalez</td><td>Particular</td><td>11-5534-2210</td><td>mgonzalez@mail.com</td><td>31.782.456</td><td><span class="badge badge-venta">1 op</span></td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-contacto',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-name">Carlos Mendez</td><td>Particular</td><td>11-6672-3345</td><td>cmendez@mail.com</td><td>25.123.789</td><td><span class="badge badge-venta">2 ops</span></td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-contacto',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-name">Pedro Soria</td><td>Particular</td><td>11-3312-5566</td><td>psoria@mail.com</td><td>33.456.012</td><td><span class="badge badge-venta">1 op</span></td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-contacto',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-name">Luis Ramos</td><td>Particular</td><td>11-7723-4490</td><td>lramos@mail.com</td><td>27.890.345</td><td><span class="badge badge-consig">Consignante</span></td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-contacto',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-name">Andres Vila</td><td>Particular</td><td>11-5544-8821</td><td>avila@mail.com</td><td>29.234.678</td><td><span class="badge badge-venta">2 ops</span></td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-contacto',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-name">Sandra Lopez</td><td>Particular</td><td>11-6634-1122</td><td>slopez@mail.com</td><td>32.567.901</td><td><span class="badge badge-asesoria">Asesoramiento</span></td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-contacto',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-name">Fernando Ruiz</td><td>Particular</td><td>11-4412-6677</td><td>fruiz@mail.com</td><td>26.789.234</td><td><span class="badge badge-garantia">Garantia activa</span></td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-contacto',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+          </tbody>
+        </table>
+      
+      <!-- Mobile cards contactos -->
+      <div class="mobile-card">
+        <div class="mobile-card-header"><span class="mobile-card-title">Juan Perez</span><span class="badge badge-venta">3 ops</span></div>
+        <div class="mobile-card-body">
+          <div class="mobile-row"><span class="mobile-row-label">Telefono</span><span class="mobile-row-value">11-4523-8891</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">DNI</span><span class="mobile-row-value">28.451.234</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Email</span><span class="mobile-row-value">jperez@mail.com</span></div>
+        </div>
+        <div class="mobile-actions"><button onclick="goTo('nuevo-contacto',null)" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">✏️ Editar</button><button style="flex:1;padding:8px;border:1px solid #f5c6c6;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">🗑 Baja</button></div>
+      </div>
+      <div class="mobile-card">
+        <div class="mobile-card-header"><span class="mobile-card-title">Maria Gonzalez</span><span class="badge badge-venta">1 op</span></div>
+        <div class="mobile-card-body">
+          <div class="mobile-row"><span class="mobile-row-label">Telefono</span><span class="mobile-row-value">11-5534-2210</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">DNI</span><span class="mobile-row-value">31.782.456</span></div>
+        </div>
+        <div class="mobile-actions"><button onclick="goTo('nuevo-contacto',null)" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">✏️ Editar</button><button style="flex:1;padding:8px;border:1px solid #f5c6c6;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">🗑 Baja</button></div>
+      </div>
+      <div class="mobile-card">
+        <div class="mobile-card-header"><span class="mobile-card-title">Luis Ramos</span><span class="badge badge-consig">Consignante</span></div>
+        <div class="mobile-card-body">
+          <div class="mobile-row"><span class="mobile-row-label">Telefono</span><span class="mobile-row-value">11-7723-4490</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">DNI</span><span class="mobile-row-value">27.890.345</span></div>
+        </div>
+        <div class="mobile-actions"><button onclick="goTo('nuevo-contacto',null)" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">✏️ Editar</button><button style="flex:1;padding:8px;border:1px solid #f5c6c6;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">🗑 Baja</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROVEEDORES -->
+  <div class="page" id="page-proveedores">
+    <div class="topbar"><button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Proveedores</div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary">+ Nuevo proveedor</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="table-wrap desktop-table">
+        <div class="table-header">
+          <div class="table-title">8 proveedores</div>
+          <div class="table-filters">
+            <input class="filter-input" placeholder="Buscar proveedor...">
+            <select class="filter-select"><option>Todas las especialidades</option><option>Servicio tecnico</option><option>Repuestos</option></select>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Proveedor</th><th>Especialidad</th><th>Contacto</th><th>Telefono</th><th>Tiempo prom.</th><th>Calificacion</th><th>Reparaciones</th><th>Acciones</th></tr></thead>
+          <tbody>
+            <tr><td class="td-name">TecnoFoto</td><td>Camaras Canon / Nikon</td><td>Marcelo Torres</td><td>11-4400-9900</td><td>12 dias</td><td><span class="badge badge-venta">Bueno</span></td><td>14</td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-proveedor',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-name">ElectroImagen</td><td>Camaras Sony / Fuji</td><td>Diego Fernandez</td><td>11-5500-1122</td><td>10 dias</td><td><span class="badge badge-asesoria">Muy bueno</span></td><td>9</td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-proveedor',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-name">OpticaBsAs</td><td>Lentes y optica</td><td>Carlos Gimenez</td><td>11-6611-3344</td><td>18 dias</td><td><span class="badge badge-canje">Regular</span></td><td>6</td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-proveedor',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+            <tr><td class="td-name">FlashService</td><td>Flashes y accesorios</td><td>Pablo Rios</td><td>11-7722-5566</td><td>7 dias</td><td><span class="badge badge-asesoria">Muy bueno</span></td><td>11</td><td><div style="display:flex;gap:6px"><button onclick="goTo('nuevo-proveedor',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#777" class="btn-edit">Editar</button><button style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">Baja</button></div></td></tr>
+          </tbody>
+        </table>
+      
+      <!-- Mobile cards proveedores -->
+      <div class="mobile-card">
+        <div class="mobile-card-header"><span class="mobile-card-title">TecnoFoto</span><span class="badge badge-venta">Bueno</span></div>
+        <div class="mobile-card-body">
+          <div class="mobile-row"><span class="mobile-row-label">Especialidad</span><span class="mobile-row-value">Canon / Nikon</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Telefono</span><span class="mobile-row-value">11-4400-9900</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Tiempo prom.</span><span class="mobile-row-value">12 dias</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Reparaciones</span><span class="mobile-row-value">14</span></div>
+        </div>
+        <div class="mobile-actions"><button onclick="goTo('nuevo-proveedor',null)" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">✏️ Editar</button><button style="flex:1;padding:8px;border:1px solid #f5c6c6;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">🗑 Baja</button></div>
+      </div>
+      <div class="mobile-card">
+        <div class="mobile-card-header"><span class="mobile-card-title">ElectroImagen</span><span class="badge badge-asesoria">Muy bueno</span></div>
+        <div class="mobile-card-body">
+          <div class="mobile-row"><span class="mobile-row-label">Especialidad</span><span class="mobile-row-value">Sony / Fuji</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Telefono</span><span class="mobile-row-value">11-5500-1122</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Tiempo prom.</span><span class="mobile-row-value">10 dias</span></div>
+        </div>
+        <div class="mobile-actions"><button onclick="goTo('nuevo-proveedor',null)" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">✏️ Editar</button><button style="flex:1;padding:8px;border:1px solid #f5c6c6;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">🗑 Baja</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTES -->
+  <div class="page" id="page-reportes">
+    <div class="topbar"><button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Reportes</div>
+      <div class="topbar-actions">
+        <select class="filter-select">
+          <option>Marzo 2026</option><option>Febrero 2026</option><option>Enero 2026</option>
+        </select>
+      </div>
+    </div>
+    <div class="content">
+      <div class="reportes-grid">
+
+        <div class="reporte-card">
+          <div class="reporte-header"><div class="reporte-title">Operaciones por tipo — Marzo 2026</div></div>
+          <div class="reporte-body">
+            <div class="reporte-bar-wrap"><div class="reporte-bar-label"><span>Ventas</span><span>18</span></div><div class="reporte-bar-bg"><div class="reporte-bar-fill" style="width:90%"></div></div></div>
+            <div class="reporte-bar-wrap"><div class="reporte-bar-label"><span>Compras</span><span>12</span></div><div class="reporte-bar-bg"><div class="reporte-bar-fill" style="width:60%"></div></div></div>
+            <div class="reporte-bar-wrap"><div class="reporte-bar-label"><span>Consignaciones</span><span>8</span></div><div class="reporte-bar-bg"><div class="reporte-bar-fill" style="width:40%"></div></div></div>
+            <div class="reporte-bar-wrap"><div class="reporte-bar-label"><span>Canjes</span><span>5</span></div><div class="reporte-bar-bg"><div class="reporte-bar-fill" style="width:25%"></div></div></div>
+            <div class="reporte-bar-wrap"><div class="reporte-bar-label"><span>Reparaciones</span><span>9</span></div><div class="reporte-bar-bg"><div class="reporte-bar-fill" style="width:45%"></div></div></div>
+          </div>
+        </div>
+
+        <div class="reporte-card">
+          <div class="reporte-header"><div class="reporte-title">Rentabilidad del mes</div></div>
+          <div class="reporte-body">
+            <div class="reporte-big">$1.240.000</div>
+            <div class="reporte-big-label">Rentabilidad bruta — Marzo 2026</div>
+            <div style="height:16px"></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">Ingresos por ventas</span><span class="reporte-stat-value">$4.820.000</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">Costo de compras</span><span class="reporte-stat-value">$3.180.000</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">Comisiones consignacion</span><span class="reporte-stat-value">$142.000</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">Ingresos reparaciones</span><span class="reporte-stat-value">$458.000</span></div>
+          </div>
+        </div>
+
+        <div class="reporte-card">
+          <div class="reporte-header"><div class="reporte-title">Operaciones pendientes por estado</div></div>
+          <div class="reporte-body">
+            <div class="reporte-stat"><span class="reporte-stat-label">En negociacion</span><span class="reporte-stat-value">5</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">En proceso</span><span class="reporte-stat-value">5</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">En reparacion</span><span class="reporte-stat-value">3</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">Para entregar</span><span class="reporte-stat-value">3</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">Total activas</span><span class="reporte-stat-value" style="color:var(--coral)">16</span></div>
+          </div>
+        </div>
+
+        <div class="reporte-card">
+          <div class="reporte-header"><div class="reporte-title">Consignaciones pendientes de liquidar</div></div>
+          <div class="reporte-body">
+            <div class="reporte-stat"><span class="reporte-stat-label">Luis Ramos — Sigma 35mm</span><span class="reporte-stat-value">$76.000</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">Jorge Blanco — Leica Q2</span><span class="reporte-stat-value">$140.000</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">Cecilia Mora — Pentax K-3</span><span class="reporte-stat-value">$140.000</span></div>
+            <div style="height:8px"></div>
+            <div class="reporte-stat"><span class="reporte-stat-label" style="font-weight:600">Total a liquidar</span><span class="reporte-stat-value" style="color:var(--coral)">$356.000</span></div>
+          </div>
+        </div>
+
+        <div class="reporte-card">
+          <div class="reporte-header"><div class="reporte-title">Equipos sin movimiento +30 dias</div></div>
+          <div class="reporte-body">
+            <div class="reporte-stat"><span class="reporte-stat-label">PH-0098 · Olympus PEN-F</span><span class="reporte-stat-value">47 dias</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">PH-0103 · Tokina 11-20mm</span><span class="reporte-stat-value">38 dias</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">PH-0112 · Yongnuo 50mm</span><span class="reporte-stat-value">35 dias</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">PH-0119 · Lowepro Flipside</span><span class="reporte-stat-value">31 dias</span></div>
+          </div>
+        </div>
+
+        <div class="reporte-card">
+          <div class="reporte-header"><div class="reporte-title">Reparaciones por proveedor</div></div>
+          <div class="reporte-body">
+            <div class="reporte-stat"><span class="reporte-stat-label">TecnoFoto</span><span class="reporte-stat-value">14 reps · 12 dias prom.</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">ElectroImagen</span><span class="reporte-stat-value">9 reps · 10 dias prom.</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">OpticaBsAs</span><span class="reporte-stat-value">6 reps · 18 dias prom.</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">FlashService</span><span class="reporte-stat-value">11 reps · 7 dias prom.</span></div>
+          </div>
+        </div>
+
+        <div class="reporte-card">
+          <div class="reporte-header"><div class="reporte-title">Prospectos sin seguimiento</div></div>
+          <div class="reporte-body">
+            <div class="reporte-stat"><span class="reporte-stat-label">Roberto Diaz — lentes gran angular</span><span class="reporte-stat-value">Hoy</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">Valeria Suarez — camara mirrorless</span><span class="reporte-stat-value">2 dias</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">Miguel Ortega — flash externo</span><span class="reporte-stat-value">3 dias</span></div>
+            <div class="reporte-stat"><span class="reporte-stat-label">Total sin seguimiento</span><span class="reporte-stat-value" style="color:var(--coral)">3</span></div>
+          </div>
+        </div>
+
+        <div class="reporte-card">
+          <div class="reporte-header"><div class="reporte-title">Equipos disponibles por tipo</div></div>
+          <div class="reporte-body">
+            <div class="reporte-bar-wrap"><div class="reporte-bar-label"><span>Camaras</span><span>24</span></div><div class="reporte-bar-bg"><div class="reporte-bar-fill" style="width:75%"></div></div></div>
+            <div class="reporte-bar-wrap"><div class="reporte-bar-label"><span>Lentes</span><span>14</span></div><div class="reporte-bar-bg"><div class="reporte-bar-fill" style="width:44%"></div></div></div>
+            <div class="reporte-bar-wrap"><div class="reporte-bar-label"><span>Flashes</span><span>5</span></div><div class="reporte-bar-bg"><div class="reporte-bar-fill" style="width:16%"></div></div></div>
+            <div class="reporte-bar-wrap"><div class="reporte-bar-label"><span>Tripodes</span><span>4</span></div><div class="reporte-bar-bg"><div class="reporte-bar-fill" style="width:12%"></div></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- NUEVO / EDITAR EQUIPO -->
+  <div class="page" id="page-nuevo-equipo">
+    <div class="topbar"><button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Cargar equipo</div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary" onclick="goTo('inventario',null)">← Volver</button>
+        <button class="btn btn-primary">Guardar equipo</button>
+      </div>
+    </div>
+    <div class="content">
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:20px">
+        <div class="form-wrap" style="max-width:100%">
+          <div class="form-title">Datos del equipo</div>
+          <div class="form-sub">Completa los campos del equipo. La descripcion puede generarse automaticamente desde las fotos con IA.</div>
+
+          <div style="background:var(--rowbg);border:2px dashed var(--border2);border-radius:8px;padding:32px;text-align:center;margin-bottom:24px;cursor:pointer">
+            <div style="font-size:32px;margin-bottom:8px">📷</div>
+            <div style="font-size:13px;font-weight:500;margin-bottom:4px">Subir fotos del equipo</div>
+            <div style="font-size:12px;color:var(--text3);font-weight:300">Arrastra las fotos aca o hace click para seleccionar. Minimo 3 fotos recomendadas.</div>
+            <button class="btn btn-secondary" style="margin-top:12px">Seleccionar fotos</button>
+          </div>
+
+          <div style="background:#fff8f6;border:1px solid var(--coral);border-radius:8px;padding:14px 16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--coral);margin-bottom:2px">✨ Generar descripcion con IA</div>
+              <div style="font-size:11px;color:var(--text2);font-weight:300">La IA analiza las fotos y genera titulo y descripcion comercial automaticamente</div>
+            </div>
+            <button class="btn btn-primary" style="white-space:nowrap">Generar con IA</button>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Marca *</label>
+              <select class="form-select"><option>Seleccionar marca</option><option>Nikon</option><option>Canon</option><option>Sony</option><option>Fujifilm</option><option>Olympus</option><option>Panasonic</option><option>Leica</option><option>Sigma</option><option>Tamron</option><option>Godox</option><option>Manfrotto</option><option>Otra</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Modelo *</label>
+              <input class="form-input" placeholder="Ej: D750, EOS R50, A7 III">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Tipo *</label>
+              <select class="form-select"><option>Seleccionar tipo</option><option>Camara DSLR</option><option>Camara mirrorless</option><option>Camara compacta</option><option>Lente</option><option>Flash</option><option>Tripode</option><option>Accesorio</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Numero de serie</label>
+              <input class="form-input" placeholder="Ej: 4521089">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Condicion *</label>
+              <select class="form-select"><option>Seleccionar condicion</option><option>Excelente</option><option>Muy bueno</option><option>Bueno</option><option>Regular</option><option>Reacondicionado</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cantidad de disparos</label>
+              <input class="form-input" placeholder="Solo para camaras — Ej: 42500">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Precio de compra (pesos)</label>
+              <input class="form-input" placeholder="$0.00">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Precio de compra (USD)</label>
+              <input class="form-input" placeholder="USD 0.00">
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Precio de venta (pesos)</label>
+              <input class="form-input" placeholder="$0.00">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Precio de venta (USD)</label>
+              <input class="form-input" placeholder="USD 0.00">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Accesorios incluidos</label>
+            <input class="form-input" placeholder="Ej: Tapa de cuerpo, correa original, cargador">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Titulo (generado por IA o manual)</label>
+            <input class="form-input" placeholder="Ej: Nikon D750 cuerpo en excelente estado — 42.500 disparos">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Descripcion comercial (generada por IA o manual)</label>
+            <textarea class="form-textarea" style="min-height:120px" placeholder="La descripcion se genera automaticamente con IA al subir las fotos, o se puede escribir manualmente..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Notas internas (no se muestran al publico)</label>
+            <textarea class="form-textarea" placeholder="Notas para el equipo — detalles que no van en la descripcion publica..."></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn btn-primary">Guardar equipo</button>
+            <button class="btn btn-secondary" onclick="goTo('inventario',null)">Cancelar</button>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;position:sticky;top:80px">
+          <div class="ficha-card">
+            <div class="ficha-card-header">Origen del equipo</div>
+            <div class="ficha-card-body">
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Como ingreso al local</label>
+                <select class="form-select"><option>Compra directa</option><option>Canje</option><option>Consignacion</option><option>Otro</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="ficha-card">
+            <div class="ficha-card-header">Codigo interno</div>
+            <div class="ficha-card-body">
+              <div style="font-size:24px;font-weight:300;color:var(--dark);font-family:'DM Mono',monospace">PH-0198</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:4px">Asignado automaticamente al guardar</div>
+            </div>
+          </div>
+          <div class="ficha-card">
+            <div class="ficha-card-header">Estado operativo</div>
+            <div class="ficha-card-body">
+              <div class="estado-dot" style="font-size:13px"><span class="dot dot-disponible"></span>Disponible al guardar</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:6px;font-weight:300">El estado cambia automaticamente segun las operaciones asociadas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NUEVO CONTACTO -->
+  <div class="page" id="page-nuevo-contacto">
+    <div class="topbar"><button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Nuevo contacto</div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary" onclick="goTo('contactos',null)">← Volver</button>
+        <button class="btn btn-primary">Guardar contacto</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="form-wrap">
+        <div class="form-title">Datos del contacto</div>
+        <div class="form-sub">Compradores, vendedores y consignantes. El historial de operaciones se genera automaticamente.</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nombre *</label>
+            <input class="form-input" placeholder="Nombre">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Apellido *</label>
+            <input class="form-input" placeholder="Apellido">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tipo *</label>
+            <select class="form-select"><option>Particular</option><option>Empresa</option></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">DNI / CUIT *</label>
+            <input class="form-input" placeholder="Ej: 28.451.234">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Telefono *</label>
+            <input class="form-input" placeholder="Ej: 11-4523-8891">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" placeholder="correo@ejemplo.com">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Direccion</label>
+          <input class="form-input" placeholder="Direccion completa">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Notas internas</label>
+          <textarea class="form-textarea" placeholder="Informacion adicional sobre este contacto..."></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary">Guardar contacto</button>
+          <button class="btn btn-secondary" onclick="goTo('contactos',null)">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NUEVO PROVEEDOR -->
+  <div class="page" id="page-nuevo-proveedor">
+    <div class="topbar"><button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Nuevo proveedor</div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary" onclick="goTo('proveedores',null)">← Volver</button>
+        <button class="btn btn-primary">Guardar proveedor</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="form-wrap">
+        <div class="form-title">Datos del proveedor</div>
+        <div class="form-sub">Tecnicos y proveedores de repuestos. El historial de reparaciones se genera automaticamente.</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nombre / Razon social *</label>
+            <input class="form-input" placeholder="Ej: TecnoFoto">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo *</label>
+            <select class="form-select"><option>Servicio tecnico</option><option>Proveedor de repuestos</option><option>Otro</option></select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Especialidad (marcas o tipos de equipo)</label>
+          <input class="form-input" placeholder="Ej: Camaras Canon y Nikon, sensores, obturadores">
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nombre del contacto</label>
+            <input class="form-input" placeholder="Ej: Marcelo Torres">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telefono *</label>
+            <input class="form-input" placeholder="Ej: 11-4400-9900">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" placeholder="correo@ejemplo.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">CUIT</label>
+            <input class="form-input" placeholder="Ej: 20-28451234-5">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Direccion</label>
+          <input class="form-input" placeholder="Direccion completa">
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tiempo promedio de entrega</label>
+            <input class="form-input" placeholder="Ej: 10 dias">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Calificacion interna</label>
+            <select class="form-select"><option>Muy bueno</option><option>Bueno</option><option>Regular</option><option>Malo</option></select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Notas internas</label>
+          <textarea class="form-textarea" placeholder="Detalles sobre este proveedor, condiciones especiales, historial de problemas..."></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary">Guardar proveedor</button>
+          <button class="btn btn-secondary" onclick="goTo('proveedores',null)">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- USUARIOS -->
+  <div class="page" id="page-usuarios">
+    <div class="topbar"><button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Usuarios y roles</div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="goTo('nuevo-usuario',this)">+ Nuevo usuario</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="table-wrap desktop-table">
+        <div class="table-header">
+          <div class="table-title">5 usuarios</div>
+          <div class="table-filters">
+            <input class="filter-input" placeholder="Buscar usuario...">
+            <select class="filter-select"><option>Todos los roles</option><option>Dueno</option><option>Empleado</option></select>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Ingreso</th><th>Operaciones</th><th style="text-align:center">Acciones</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:28px;height:28px;font-size:11px">PR</div><span class="td-name">Patricio Rey</span></div></td>
+              <td>patricio@phfotografia.com</td>
+              <td><span class="badge badge-compra">Dueno</span></td>
+              <td><span class="estado-dot"><span class="dot dot-disponible"></span>Activo</span></td>
+              <td>01/01/1991</td>
+              <td>—</td>
+              <td style="text-align:center"><span style="font-size:11px;color:var(--text3)">No editable</span></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:#3B8BD4">RO</div><span class="td-name">Rodrigo Ortiz</span></div></td>
+              <td>rodrigo@phfotografia.com</td>
+              <td><span class="badge badge-asesoria">Empleado</span></td>
+              <td><span class="estado-dot"><span class="dot dot-disponible"></span>Activo</span></td>
+              <td>15/03/2022</td>
+              <td><span class="badge badge-venta">48 ops</span></td>
+              <td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center"><button onclick="goTo('nuevo-usuario',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;color:#777;font-family:Poppins,sans-serif">✏️ Editar</button><button onclick="if(confirm('Dar de baja a Rodrigo?'))this.closest('tr').style.opacity='0.4'" style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;color:#A32D2D;font-family:Poppins,sans-serif">🗑 Baja</button></div></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:#4CAF50">LU</div><span class="td-name">Lucas Fernandez</span></div></td>
+              <td>lucas@phfotografia.com</td>
+              <td><span class="badge badge-asesoria">Empleado</span></td>
+              <td><span class="estado-dot"><span class="dot dot-disponible"></span>Activo</span></td>
+              <td>02/07/2023</td>
+              <td><span class="badge badge-venta">31 ops</span></td>
+              <td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center"><button onclick="goTo('nuevo-usuario',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;color:#777;font-family:Poppins,sans-serif">✏️ Editar</button><button onclick="if(confirm('Dar de baja a Lucas?'))this.closest('tr').style.opacity='0.4'" style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;color:#A32D2D;font-family:Poppins,sans-serif">🗑 Baja</button></div></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:#9C27B0">AN</div><span class="td-name">Ana Martinez</span></div></td>
+              <td>ana@phfotografia.com</td>
+              <td><span class="badge badge-asesoria">Empleado</span></td>
+              <td><span class="estado-dot"><span class="dot dot-disponible"></span>Activo</span></td>
+              <td>10/01/2024</td>
+              <td><span class="badge badge-venta">22 ops</span></td>
+              <td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center"><button onclick="goTo('nuevo-usuario',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;color:#777;font-family:Poppins,sans-serif">✏️ Editar</button><button onclick="if(confirm('Dar de baja a Ana?'))this.closest('tr').style.opacity='0.4'" style="padding:4px 10px;border:1px solid #f5c6c6;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;color:#A32D2D;font-family:Poppins,sans-serif">🗑 Baja</button></div></td>
+            </tr>
+            <tr>
+              <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:#FF9800">MA</div><span class="td-name">Mario Suarez</span></div></td>
+              <td>mario@phfotografia.com</td>
+              <td><span class="badge badge-asesoria">Empleado</span></td>
+              <td><span class="estado-dot"><span class="dot dot-vendido"></span>Inactivo</span></td>
+              <td>05/06/2021</td>
+              <td><span class="badge badge-venta">67 ops</span></td>
+              <td style="text-align:center"><div style="display:flex;gap:4px;justify-content:center"><button onclick="goTo('nuevo-usuario',null)" style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;color:#777;font-family:Poppins,sans-serif">✏️ Editar</button><button onclick="if(confirm('Reactivar a Mario?'))this.closest('tr').querySelector('.dot').className='dot dot-disponible'" style="padding:4px 10px;border:1px solid #c8e6c9;border-radius:4px;background:transparent;font-size:11px;cursor:pointer;color:#3B6D11;font-family:Poppins,sans-serif">↩ Reactivar</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile cards usuarios -->
+      <div class="mobile-card">
+        <div class="mobile-card-header"><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:11px">PR</div><span class="mobile-card-title">Patricio Rey</span></div><span class="badge badge-compra">Dueno</span></div>
+        <div class="mobile-card-body">
+          <div class="mobile-row"><span class="mobile-row-label">Email</span><span class="mobile-row-value">patricio@ph...</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Estado</span><span class="mobile-row-value">Activo</span></div>
+        </div>
+        <div class="mobile-actions"><span style="font-size:11px;color:var(--text3);padding:4px 8px">No editable</span></div>
+      </div>
+      <div class="mobile-card">
+        <div class="mobile-card-header"><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:#3B8BD4">RO</div><span class="mobile-card-title">Rodrigo Ortiz</span></div><span class="badge badge-asesoria">Empleado</span></div>
+        <div class="mobile-card-body">
+          <div class="mobile-row"><span class="mobile-row-label">Estado</span><span class="mobile-row-value">Activo</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Operaciones</span><span class="mobile-row-value">48</span></div>
+        </div>
+        <div class="mobile-actions"><button onclick="goTo('nuevo-usuario',null)" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">✏️ Editar</button><button style="flex:1;padding:8px;border:1px solid #f5c6c6;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">🗑 Baja</button></div>
+      </div>
+      <div class="mobile-card">
+        <div class="mobile-card-header"><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:#4CAF50">LU</div><span class="mobile-card-title">Lucas Fernandez</span></div><span class="badge badge-asesoria">Empleado</span></div>
+        <div class="mobile-card-body">
+          <div class="mobile-row"><span class="mobile-row-label">Estado</span><span class="mobile-row-value">Activo</span></div>
+          <div class="mobile-row"><span class="mobile-row-label">Operaciones</span><span class="mobile-row-value">31</span></div>
+        </div>
+        <div class="mobile-actions"><button onclick="goTo('nuevo-usuario',null)" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">✏️ Editar</button><button style="flex:1;padding:8px;border:1px solid #f5c6c6;border-radius:6px;background:transparent;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;color:#A32D2D">🗑 Baja</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NUEVO USUARIO -->
+  <div class="page" id="page-nuevo-usuario">
+    <div class="topbar"><button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">Nuevo usuario</div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary" onclick="goTo('usuarios',null)">← Volver</button>
+        <button class="btn btn-primary">Guardar usuario</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="form-wrap">
+        <div class="form-title">Datos del usuario</div>
+        <div class="form-sub">Cada empleado entra con su propio usuario. Los permisos dependen del rol asignado.</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nombre *</label>
+            <input class="form-input" placeholder="Nombre">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Apellido *</label>
+            <input class="form-input" placeholder="Apellido">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input class="form-input" type="email" placeholder="empleado@phfotografia.com">
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Rol *</label>
+            <select class="form-select">
+              <option>Empleado</option>
+              <option>Dueno</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Estado</label>
+            <select class="form-select">
+              <option>Activo</option>
+              <option>Inactivo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Contrasena *</label>
+            <input class="form-input" type="password" placeholder="Minimo 8 caracteres">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirmar contrasena *</label>
+            <input class="form-input" type="password" placeholder="Repetir contrasena">
+          </div>
+        </div>
+
+        <div style="background:var(--rowbg);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:8px">
+          <div style="font-size:12px;font-weight:600;margin-bottom:12px">Permisos segun rol</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+            <div style="display:flex;align-items:center;gap:8px"><span style="color:var(--green);font-size:14px">✓</span> Ver inventario</div>
+            <div style="display:flex;align-items:center;gap:8px"><span style="color:var(--green);font-size:14px">✓</span> Cargar equipos</div>
+            <div style="display:flex;align-items:center;gap:8px"><span style="color:var(--green);font-size:14px">✓</span> Registrar operaciones</div>
+            <div style="display:flex;align-items:center;gap:8px"><span style="color:var(--green);font-size:14px">✓</span> Ver contactos</div>
+            <div style="display:flex;align-items:center;gap:8px"><span style="color:#ccc;font-size:14px">✗</span> Ver costos de compra</div>
+            <div style="display:flex;align-items:center;gap:8px"><span style="color:#ccc;font-size:14px">✗</span> Ver rentabilidad</div>
+            <div style="display:flex;align-items:center;gap:8px"><span style="color:#ccc;font-size:14px">✗</span> Gestionar usuarios</div>
+            <div style="display:flex;align-items:center;gap:8px"><span style="color:#ccc;font-size:14px">✗</span> Ver reportes completos</div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:10px">El rol Dueno tiene acceso total a todas las funciones del sistema.</div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary">Guardar usuario</button>
+          <button class="btn btn-secondary" onclick="goTo('usuarios',null)">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// NAVIGATION
+function goTo(page, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pageEl = document.getElementById('page-' + page);
+  if (pageEl) pageEl.classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  closeDetail();
+}
+
+// KANBAN
+let dragged = null;
+let selectedCard = null;
+const tipoLabel = {compra:'Compra',venta:'Venta',canje:'Canje',consig:'Consignacion',rep:'Reparacion',garantia:'Garantia',devol:'Devolucion',asesoria:'Asesoramiento',atencion:'Atencion'};
+
+function onDrag(e) { dragged = e.currentTarget; setTimeout(() => dragged.classList.add('dragging'), 0); }
+function onEnd(e) { if(dragged) dragged.classList.remove('dragging'); document.querySelectorAll('.kb-col').forEach(c => c.classList.remove('drag-over')); dragged = null; }
+function onOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function onLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function onDrop(e) {
+  e.preventDefault();
+  const col = e.currentTarget;
+  col.classList.remove('drag-over');
+  if (dragged && col !== dragged.parentElement) {
+    col.insertBefore(dragged, col.querySelector('.drop-hint').nextSibling);
+    updateCounts();
+  }
+}
+
+function openDetail(card) {
+  if (dragged) return;
+  document.querySelectorAll('.kb-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedCard = card;
+  document.getElementById('d-title').textContent = card.querySelector('.kb-card-name').textContent;
+  document.getElementById('d-sub').textContent = (tipoLabel[card.dataset.tipo] || card.dataset.tipo) + ' · ' + card.dataset.emp;
+  document.getElementById('d-emp').textContent = card.dataset.emp;
+  document.getElementById('d-contacto').textContent = card.dataset.contacto;
+  document.getElementById('d-precio').textContent = card.dataset.precio;
+  document.getElementById('d-com').textContent = card.dataset.com;
+  document.getElementById('d-fecha').textContent = card.dataset.fecha;
+  document.getElementById('d-notas').textContent = card.dataset.notas;
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('open');
+  document.querySelectorAll('.kb-card').forEach(c => c.classList.remove('selected'));
+  selectedCard = null;
+}
+
+function moverCard(colId) {
+  if (!selectedCard) return;
+  const col = document.querySelector('[data-col="' + colId + '"]');
+  col.insertBefore(selectedCard, col.querySelector('.drop-hint').nextSibling);
+  updateCounts();
+  closeDetail();
+}
+
+function updateCounts() {
+  document.querySelectorAll('.kb-col').forEach(col => {
+    const id = col.dataset.col;
+    const count = col.querySelectorAll('.kb-card').length;
+    const el = document.getElementById('cnt-' + id);
+    if (el) el.textContent = count;
+  });
+}
+
+function selTipo(card) {
+  document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+// Close sidebar when nav item clicked on mobile
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if(window.innerWidth <= 768) closeSidebar();
+  });
+});
+</script>
+</body>
+</html>
